@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Server Error{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="error-template">
+                <h1>Oops!</h1>
+                <h2>500 Server Error</h2>
+                <div class="error-details">
+                    {{ error_message|default:"Something went wrong on our end. We're working to fix it." }}
+                </div>
+                <div class="error-actions mt-4">
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-home"></i> Take Me Home 
+                    </a>
+                    <a href="mailto:{{ support_email|default:'support@ward-system.go.tz' }}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-envelope"></i> Contact Support 
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

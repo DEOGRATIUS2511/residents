@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}All Letter Requests - Ward Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-envelope-open"></i> All Letter Requests
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Requests Overview</h5>
+                <span class="text-muted small">Showing {{ requests.start_index }}–{{ requests.end_index }} of {{ requests.paginator.count }}</span>
+            </div>
+            <div class="card-body">
+                {% if requests %}
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Resident</th>
+                                    <th>Letter Type</th>
+                                    <th>Purpose</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Requested</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in requests %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if request.requested_by.resident.photo %}
+                                                <img src="{{ request.requested_by.resident.photo.url }}" alt="Photo" class="rounded-circle me-2" style="width: 32px; height: 32px;">
+                                            {% elif request.requested_by.profile_photo %}
+                                                <img src="{{ request.requested_by.profile_photo.url }}" alt="Photo" class="rounded-circle me-2" style="width: 32px; height: 32px;">
+                                            {% else %}
+                                                <div class="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-user text-muted"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ request.requested_by.resident.full_name }}</strong>
+                                                <br><small class="text-muted">{{ request.requested_by.username }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ request.letter_type.name }}</td>
+                                    <td>{{ request.purpose|truncatechars:60 }}</td>
+                                    <td>
+                                        {% if request.priority == 'high' %}
+                                            <span class="badge bg-danger">High</span>
+                                        {% elif request.priority == 'medium' %}
+                                            <span class="badge bg-warning">Medium</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Low</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.status == 'pending' %}
+                                            <span class="badge bg-warning"><i class="fas fa-clock"></i> Pending</span>
+                                        {% elif request.status == 'approved' %}
+                                            <span class="badge bg-success"><i class="fas fa-check"></i> Approved</span>
+                                        {% elif request.status == 'rejected' %}
+                                            <span class="badge bg-danger"><i class="fas fa-times"></i> Rejected</span>
+                                        {% elif request.status == 'completed' %}
+                                            <span class="badge bg-secondary"><i class="fas fa-file"></i> Completed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ request.created_at|date:"M d, Y" }}
+                                        <br><small class="text-muted">{{ request.created_at|time:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'letters:detail' request.pk %}" class="btn btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if request.status == 'pending' %}
+                                                <a href="{% url 'letters:approve' request.pk %}" class="btn btn-outline-success" title="Approve">
+                                                    <i class="fas fa-check"></i>
+                                                </a>
+                                                <a href="{% url 'letters:reject' request.pk %}" class="btn btn-outline-danger" title="Reject">
+                                                    <i class="fas fa-times"></i>
+                                                </a>
+                                            {% elif request.status == 'approved' %}
+                                                <a href="{% url 'letters:generate_pdf' request.pk %}" class="btn btn-success" title="Generate PDF">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Pagination" class="mt-3">
+                        <ul class="pagination justify-content-center">
+                            {% if requests.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+                                <li class="page-item"><a class="page-link" href="?page={{ requests.previous_page_number }}">Previous</a></li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">First</span></li>
+                                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                            {% endif %}
+
+                            <li class="page-item disabled"><span class="page-link">Page {{ requests.number }} of {{ requests.paginator.num_pages }}</span></li>
+
+                            {% if requests.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ requests.next_page_number }}">Next</a></li>
+                                <li class="page-item"><a class="page-link" href="?page={{ requests.paginator.num_pages }}">Last</a></li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">Next</span></li>
+                                <li class="page-item disabled"><span class="page-link">Last</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No letter requests found</h5>
+                        <p class="text-muted">When residents submit requests, they'll appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

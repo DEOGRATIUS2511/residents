@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Approve Letter Request - Ward Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-check-circle"></i> Approve Letter Request
+        </h1>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Request Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Resident Information</h6>
+                        <div class="d-flex align-items-center mb-3">
+                            {% if letter_request.requested_by.resident.photo %}
+                                <img src="{{ letter_request.requested_by.resident.photo.url }}" alt="Photo" class="rounded-circle me-3" style="width: 60px; height: 60px;">
+                            {% elif letter_request.requested_by.profile_photo %}
+                                <img src="{{ letter_request.requested_by.profile_photo.url }}" alt="Photo" class="rounded-circle me-3" style="width: 60px; height: 60px;">
+                            {% else %}
+                                <div class="bg-light rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-user fa-2x text-muted"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ letter_request.requested_by.resident.full_name }}</strong>
+                                <br><small class="text-muted">{{ letter_request.requested_by.username }}</small>
+                                <br><small class="text-muted">NIDA: {{ letter_request.requested_by.resident.nida_number }}</small>
+                            </div>
+                        </div>
+                        <p><strong>Phone:</strong> {{ letter_request.requested_by.resident.phone_number|default:"Not provided" }}</p>
+                        <p><strong>Address:</strong> {{ letter_request.requested_by.resident.household.house_number }}, {{ letter_request.requested_by.resident.household.street_name }}</p>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <h6>Request Information</h6>
+                        <p><strong>Letter Type:</strong> {{ letter_request.letter_type.name }}</p>
+                        <p><strong>Purpose:</strong> {{ letter_request.purpose }}</p>
+                        {% if letter_request.additional_info %}
+                            <p><strong>Additional Information:</strong> {{ letter_request.additional_info }}</p>
+                        {% endif %}
+                        <p><strong>Priority:</strong> 
+                            {% if letter_request.priority == 'high' %}
+                                <span class="badge bg-danger">High</span>
+                            {% elif letter_request.priority == 'medium' %}
+                                <span class="badge bg-warning">Medium</span>
+                            {% else %}
+                                <span class="badge bg-info">Low</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Requested:</strong> {{ letter_request.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-check"></i> Approval Action</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="admin_comments" class="form-label">Admin Comments (Optional)</label>
+                        <textarea name="admin_comments" id="admin_comments" class="form-control" rows="3" placeholder="Add any comments or notes about this approval..."></textarea>
+                        <div class="form-text">These comments will be visible to the resident</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>What happens when you approve:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>The request status will be changed to "Approved"</li>
+                            <li>A PDF letter will be automatically generated</li>
+                            <li>The resident will be able to download their letter</li>
+                            <li>The resident will be notified of the approval</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Approve Request
+                        </button>
+                        <a href="{% url 'letters:reject' letter_request.pk %}" class="btn btn-outline-danger">
+                            <i class="fas fa-times"></i> Reject Instead
+                        </a>
+                        <a href="{% url 'letters:pending' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Pending
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

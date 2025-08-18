@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Letter Request Details - Ward Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-file-alt"></i> Letter Request Details
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-info-circle"></i> Request Information</h5>
+                {% if letter_request.status == 'pending' %}
+                    <span class="badge bg-warning fs-6">
+                        <i class="fas fa-clock"></i> Pending
+                    </span>
+                {% elif letter_request.status == 'approved' %}
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-check"></i> Approved
+                    </span>
+                {% elif letter_request.status == 'rejected' %}
+                    <span class="badge bg-danger fs-6">
+                        <i class="fas fa-times"></i> Rejected
+                    </span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Letter Details</h6>
+                        <p><strong>Letter Type:</strong> {{ letter_request.letter_type.name }}</p>
+                        <p><strong>Purpose:</strong> {{ letter_request.purpose }}</p>
+                        {% if letter_request.additional_info %}
+                            <p><strong>Additional Information:</strong> {{ letter_request.additional_info }}</p>
+                        {% endif %}
+                        <p><strong>Priority:</strong> 
+                            {% if letter_request.priority == 'high' %}
+                                <span class="badge bg-danger">High</span>
+                            {% elif letter_request.priority == 'medium' %}
+                                <span class="badge bg-warning">Medium</span>
+                            {% else %}
+                                <span class="badge bg-info">Low</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>Timeline</h6>
+                        <p><strong>Requested:</strong> {{ letter_request.created_at|date:"M d, Y H:i" }}</p>
+                        <p><strong>Last Updated:</strong> {{ letter_request.updated_at|date:"M d, Y H:i" }}</p>
+                        {% if letter_request.processed_at %}
+                            <p><strong>Processed:</strong> {{ letter_request.processed_at|date:"M d, Y H:i" }}</p>
+                        {% endif %}
+                        {% if letter_request.processed_by %}
+                            <p><strong>Processed By:</strong> {{ letter_request.processed_by.username }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if letter_request.admin_comments %}
+                    <div class="mt-3">
+                        <h6>Admin Comments</h6>
+                        <div class="alert alert-info">
+                            <i class="fas fa-comment"></i> {{ letter_request.admin_comments }}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if letter_request.status == 'approved' %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-download"></i> Generated Letter</h5>
+                </div>
+                <div class="card-body">
+                    <p>Your letter has been approved and is ready for download.</p>
+                    <a href="{% url 'letters:generate_pdf' letter_request.pk %}" class="btn btn-success">
+                        <i class="fas fa-file-pdf"></i> Download PDF Letter
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user"></i> Resident Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    {% if letter_request.requested_by.resident.photo %}
+                        <img src="{{ letter_request.requested_by.resident.photo.url }}" alt="Photo" class="rounded-circle" style="width: 80px; height: 80px;">
+                    {% elif letter_request.requested_by.profile_photo %}
+                        <img src="{{ letter_request.requested_by.profile_photo.url }}" alt="Photo" class="rounded-circle" style="width: 80px; height: 80px;">
+                    {% else %}
+                        <div class="bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="fas fa-user fa-2x text-muted"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <p><strong>Name:</strong> {{ letter_request.requested_by.resident.full_name }}</p>
+                <p><strong>Username:</strong> {{ letter_request.requested_by.username }}</p>
+                <p><strong>NIDA:</strong> {{ letter_request.requested_by.resident.nida_number }}</p>
+                <p><strong>Phone:</strong> {{ letter_request.requested_by.resident.phone_number|default:"Not provided" }}</p>
+                <p><strong>Address:</strong> {{ letter_request.requested_by.resident.household.house_number }}, {{ letter_request.requested_by.resident.household.street_name }}</p>
+                <p><strong>Household:</strong> {{ letter_request.requested_by.resident.household.household_number }}</p>
+            </div>
+        </div>
+        
+        {% if user.role == 'admin' and letter_request.status == 'pending' %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-cogs"></i> Admin Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'letters:approve' letter_request.pk %}" class="btn btn-success">
+                            <i class="fas fa-check"></i> Approve Request
+                        </a>
+                        <a href="{% url 'letters:reject' letter_request.pk %}" class="btn btn-danger">
+                            <i class="fas fa-times"></i> Reject Request
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex gap-2">
+            {% if user.role == 'admin' %}
+                <a href="{% url 'letters:pending' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Pending
+                </a>
+            {% else %}
+                <a href="{% url 'letters:my_requests' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to My Requests
+                </a>
+            {% endif %}
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

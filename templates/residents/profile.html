@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - Ward Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-user"></i> My Profile
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-camera"></i> Profile Photo</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if resident.photo %}
+                    <img src="{{ resident.photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle mb-3" style="max-width: 200px; max-height: 200px;">
+                {% elif user.profile_photo %}
+                    <img src="{{ user.profile_photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle mb-3" style="max-width: 200px; max-height: 200px;">
+                {% else %}
+                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 200px; height: 200px;">
+                        <i class="fas fa-user fa-5x text-muted"></i>
+                    </div>
+                {% endif %}
+                <p class="text-muted">{{ resident.full_name }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Full Name:</strong> {{ resident.full_name }}</p>
+                        <p><strong>NIDA Number:</strong> {{ resident.nida_number }}</p>
+                        <p><strong>Date of Birth:</strong> {{ resident.date_of_birth|date:"M d, Y" }}</p>
+                        <p><strong>Age:</strong> {{ resident.age }} years</p>
+                        <p><strong>Gender:</strong> {{ resident.get_gender_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Phone:</strong> {{ resident.phone_number|default:"Not provided" }}</p>
+                        <p><strong>Email:</strong> {{ resident.email|default:"Not provided" }}</p>
+                        <p><strong>Marital Status:</strong> {{ resident.get_marital_status_display }}</p>
+                        <p><strong>Occupation:</strong> {{ resident.occupation|default:"Not specified" }}</p>
+                        <p><strong>Education:</strong> {{ resident.education_level|default:"Not specified" }}</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-home"></i> Household Information</h6>
+                        <p><strong>Household Number:</strong> {{ resident.household.household_number }}</p>
+                        <p><strong>Address:</strong> {{ resident.household.house_number }}, {{ resident.household.street_name }}</p>
+                        <p><strong>Ward:</strong> {{ resident.household.ward }}</p>
+                        <p><strong>Relationship to Head:</strong> {{ resident.relationship_to_head }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-flag"></i> Additional Information</h6>
+                        <p><strong>Special Category:</strong> 
+                            {% if resident.special_category == 'none' %}
+                                <span class="text-muted">None</span>
+                            {% else %}
+                                <span class="badge bg-info">{{ resident.get_special_category_display }}</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Registration Date:</strong> {{ resident.registration_date|date:"M d, Y" }}</p>
+                        <p><strong>Status:</strong> 
+                            {% if resident.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{% url 'residents:edit' resident.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Update Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-envelope"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'letters:request' %}" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Request New Letter
+                    </a>
+                    <a href="{% url 'letters:my_requests' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i> View My Requests
+                    </a>
+                    <a href="{% url 'communications:create_complaint' %}" class="btn btn-outline-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Submit Complaint
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> My Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h4 class="text-primary">{{ letter_requests_count }}</h4>
+                        <small>Total Requests</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-success">{{ approved_requests_count }}</h4>
+                        <small>Approved</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-warning">{{ pending_requests_count }}</h4>
+                        <small>Pending</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

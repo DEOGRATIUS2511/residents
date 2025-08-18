@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Register - Ward Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+        border-left: 3px solid #8b7b3a;
+        font-style: italic;
+        transition: all 0.2s ease;
+    }
+    
+    .form-control:focus + .form-text {
+        background: #fff5f0;
+        color: #5a4a2a;
+        border-left-color: #8b7b3a;
+    }
+    
+    .form-control {
+        border: 2px solid #e8e8e8;
+        border-radius: 6px;
+        padding: 0.75rem;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control:focus {
+        border-color: #8b7b3a;
+        box-shadow: 0 0 0 0.2rem rgba(139, 123, 58, 0.15);
+        outline: none;
+    }
+    
+    .form-control:hover {
+        border-color: #8b7b3a;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #8b7b3a 0%, #a89654 100%);
+        color: white;
+        border-radius: 8px 8px 0 0 !important;
+    }
+    
+    .card-header h4 {
+        color: white;
+        font-weight: 600;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #8b7b3a 0%, #a89654 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(139, 123, 58, 0.2);
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #7a6b32 0%, #96864b 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(139, 123, 58, 0.3);
+    }
+    
+    .help-icon {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        background: #8b7b3a;
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 16px;
+        font-size: 10px;
+        margin-right: 0.5rem;
+        flex-shrink: 0;
+    }
+    
+    .form-text-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4 class="mb-0">Register New Account</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <input type="text" name="full_name" class="form-control" placeholder="Full Name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <input type="email" name="email" class="form-control" placeholder="Email" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <input type="text" name="username" class="form-control" placeholder="Username" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <input type="tel" name="phone_number" class="form-control" placeholder="Phone Number *" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <input type="password" name="password1" class="form-control" placeholder="Password" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <input type="password" name="password2" class="form-control" placeholder="Confirm Password" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <input type="text" name="nida_number" class="form-control" placeholder="NIDA Number *" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <input type="file" name="profile_photo" class="form-control" accept="image/*" required>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            {% for field, errors in form.errors.items %}
+                                <strong>{{ field|title }}:</strong>
+                                {% for error in errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            Register
+                        </button>
+                    </div>
+                </form>
+                <hr>
+                <div class="text-center">
+                    <p>Already have an account? <a href="{% url 'accounts:login' %}">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

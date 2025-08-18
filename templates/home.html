@@ -1,0 +1,367 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Ward Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        {% if user.is_authenticated %}
+            <h1 class="mb-4">
+                <small class="text-muted">Welcome, {{ user.get_full_name|default:user.username }}</small>
+            </h1>
+        {% endif %}
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+    {% if user.role == 'admin' %}
+        <!-- Admin Dashboard -->
+        <div class="row">
+            <div class="col-md-3 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ total_residents }}</h4>
+                                <p class="mb-0">Total Residents</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card dashboard-card bg-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ pending_requests }}</h4>
+                                <p class="mb-0">Pending Requests</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-clock fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card dashboard-card bg-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ completed_requests }}</h4>
+                                <p class="mb-0">Completed Letters</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card dashboard-card bg-info">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ active_visitors }}</h4>
+                                <p class="mb-0">Active Visitors</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-user-friends fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-clock"></i> Recent Letter Requests</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_requests %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Resident</th>
+                                            <th>Letter Type</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for request in recent_requests %}
+                                        <tr>
+                                            <td>{{ request.resident.full_name }}</td>
+                                            <td>{{ request.letter_type.name }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if request.status == 'pending' %}warning{% elif request.status == 'approved' %}success{% elif request.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                                                    {{ request.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ request.request_date|date:"M d, Y" }}</td>
+                                            <td>
+                                                <a href="{% url 'letters:detail' request.id %}" class="btn btn-sm btn-outline-primary">
+                                                    View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No recent requests.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-bullhorn"></i> Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'residents:register' %}" class="btn btn-primary">
+                                <i class="fas fa-user-plus"></i> Register New Resident
+                            </a>
+                            <a href="{% url 'letters:pending' %}" class="btn btn-warning">
+                                <i class="fas fa-tasks"></i> Review Pending Requests
+                            </a>
+                            <a href="{% url 'communications:create_announcement' %}" class="btn btn-info">
+                                <i class="fas fa-bullhorn"></i> Create Announcement
+                            </a>
+                            <a href="{% url 'visitors:log' %}" class="btn btn-success">
+                                <i class="fas fa-clipboard-list"></i> Visitor Log
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% elif user.role == 'resident' %}
+        <!-- Resident Dashboard -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-user"></i> My Profile</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if user.resident %}
+                            <div class="row">
+                                <div class="col-4">
+                                    {% if user.resident.photo %}
+                                        <img src="{{ user.resident.photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle" style="max-width: 80px; max-height: 80px;">
+                                    {% elif user.profile_photo %}
+                                        <img src="{{ user.profile_photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle" style="max-width: 80px; max-height: 80px;">
+                                    {% else %}
+                                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                            <i class="fas fa-user fa-2x text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-8">
+                                    <p><strong>Name:</strong> {{ user.resident.full_name }}</p>
+                                    <p><strong>NIDA:</strong> {{ user.resident.nida_number }}</p>
+                                    <p><strong>Phone:</strong> {{ user.resident.phone_number|default:"Not provided" }}</p>
+                                    <p><strong>Age:</strong> {{ user.resident.age }} years</p>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <p><strong>Address:</strong> {{ user.resident.household.house_number }}, {{ user.resident.household.street_name }}</p>
+                                <p><strong>Household:</strong> {{ user.resident.household.household_number }}</p>
+                            </div>
+                            <div class="mt-3">
+                                <a href="{% url 'residents:profile' %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View Full Profile
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="text-center">
+                                <i class="fas fa-user-plus fa-3x text-warning mb-3"></i>
+                                <p class="text-warning">Profile not complete. Please complete your resident registration.</p>
+                                <a href="{% url 'residents:register' %}" class="btn btn-primary">Complete Registration</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-envelope"></i> My Letter Requests</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h4 class="text-warning">{{ pending_requests_count|default:0 }}</h4>
+                                <small>Pending</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="text-success">{{ approved_requests_count|default:0 }}</h4>
+                                <small>Approved</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="text-secondary">{{ letter_requests_count|default:0 }}</h4>
+                                <small>Total</small>
+                            </div>
+                        </div>
+                        
+                        {% if approved_requests_count > 0 %}
+                            <div class="alert alert-success mt-3 mb-2">
+                                <i class="fas fa-check-circle"></i>
+                                <strong>{{ approved_requests_count }} letter{{ approved_requests_count|pluralize }} ready for download!</strong>
+                            </div>
+                        {% endif %}
+                        
+                        {% if approved_letters %}
+                            <div class="mt-3">
+                                <h6 class="mb-2"><i class="fas fa-download me-1"></i> Ready to Download</h6>
+                                <ul class="list-group list-group-flush">
+                                    {% for req in approved_letters %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ req.letter_type.name }}</strong>
+                                                <small class="text-muted d-block">Requested {{ req.request_date|date:"M d, Y" }}</small>
+                                            </div>
+                                            <a href="{% url 'letters:generate_pdf' req.pk %}" class="btn btn-sm btn-success">
+                                                <i class="fas fa-file-pdf me-1"></i> Download
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mt-3 mb-0">No approved letters yet.</p>
+                        {% endif %}
+
+                        <div class="mt-3">
+                            <a href="{% url 'letters:request' %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> New Request
+                            </a>
+                            <a href="{% url 'letters:my_requests' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-list"></i> View All
+                            </a>
+                            <a href="{% url 'communications:create_complaint' %}" class="btn btn-outline-warning btn-sm">
+                                <i class="fas fa-exclamation-triangle"></i> Complaint
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-bullhorn"></i> Recent Announcements</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if announcements %}
+                            {% for announcement in announcements %}
+                                <div class="alert alert-{% if announcement.priority == 'urgent' %}danger{% elif announcement.priority == 'high' %}warning{% else %}info{% endif %} mb-2">
+                                    <h6 class="alert-heading">{{ announcement.title }}</h6>
+                                    <p class="mb-1">{{ announcement.content|truncatewords:20 }}</p>
+                                    <small class="text-muted">{{ announcement.created_at|date:"M d, Y" }}</small>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No recent announcements.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+{% else %}
+    <!-- Public Dashboard -->
+    <div class="welcome-section">
+        <div class="container">
+            <h1 class="welcome-title">Welcome to Ward Resident Management System</h1>
+            <p class="welcome-subtitle">
+                A digital platform for efficient ward administration, resident services, and community communication.
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users fw-bold"></i>
+                </div>
+                <h3 class="feature-title">Resident Registration</h3>
+                <p class="feature-description">Create a resident profile with contact and household details to access ward services.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-envelope fw-bold"></i>
+                </div>
+                <h3 class="feature-title">Letter Requests</h3>
+                <p class="feature-description">Apply online for official ward letters and download approved documents.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-comments fw-bold"></i>
+                </div>
+                <h3 class="feature-title">Communication</h3>
+                <p class="feature-description">View announcements and share feedback to improve services in your community.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-user-plus fw-bold"></i> Register
+            </a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt fw-bold"></i> Login
+            </a>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bullhorn"></i> Public Announcements</h5>
+                </div>
+                <div class="card-body">
+                    {% if public_announcements %}
+                        {% for announcement in public_announcements %}
+                            <div class="alert alert-{% if announcement.priority == 'urgent' %}danger{% elif announcement.priority == 'high' %}warning{% else %}info{% endif %} mb-2">
+                                <h6 class="alert-heading">{{ announcement.title }}</h6>
+                                <p class="mb-1">{{ announcement.content }}</p>
+                                <small class="text-muted">{{ announcement.created_at|date:"M d, Y" }}</small>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No announcements at this time.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

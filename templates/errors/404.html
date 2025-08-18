@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Page Not Found{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="error-template">
+                <h1>Oops!</h1>
+                <h2>404 Not Found</h2>
+                <div class="error-details">
+                    Sorry, the page you are looking for does not exist.
+                </div>
+                <div class="error-actions mt-4">
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+                        <span class="glyphicon glyphicon-home"></span>
+                        Take Me Home 
+                    </a>
+                    <a href="mailto:support@ward-system.go.tz" class="btn btn-secondary btn-lg">
+                        <span class="glyphicon glyphicon-envelope"></span> 
+                        Contact Support 
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

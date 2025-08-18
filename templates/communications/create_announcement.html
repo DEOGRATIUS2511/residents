@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% load form_utils %}
+
+{% block title %}Create Announcement - Ward Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: #fefefe;
+        border: 1px solid #e8e8e8;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: box-shadow 0.2s ease;
+    }
+    
+    .form-section:hover {
+        box-shadow: 0 2px 8px rgba(139, 123, 58, 0.1);
+    }
+    
+    .form-section h6 {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #8b7b3a;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        border: 2px solid #e8e8e8;
+        border-radius: 6px;
+        padding: 0.75rem;
+        font-size: 0.95rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #8b7b3a;
+        box-shadow: 0 0 0 0.25rem rgba(139, 123, 58, 0.25);
+    }
+    
+    .btn-primary {
+        background-color: #8b7b3a;
+        border-color: #8b7b3a;
+    }
+    
+    .btn-primary:hover, .btn-primary:focus {
+        background-color: #756833;
+        border-color: #756833;
+    }
+    
+    .btn-outline-secondary {
+        color: #2c3e50;
+        border-color: #2c3e50;
+    }
+    
+    .btn-outline-secondary:hover, .btn-outline-secondary:focus {
+        background-color: #2c3e50;
+        border-color: #2c3e50;
+        color: white;
+    }
+
+    /* Consistency: visually hide labels (kept for screen readers) and rely on placeholders */
+    .create-announcement .form-label,
+    .create-announcement label.form-label,
+    .create-announcement form label[for] {
+        position: absolute !important;
+        width: 1px; height: 1px; padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+    .page-title { text-align: center; font-weight: 700; color: #2c3e50; }
+    .page-subtitle { text-align: center; color: #5a6c7d; margin-top: .25rem; font-size: .95rem; }
+    .back-link { color: #8b7b3a; text-decoration: none; font-weight: 600; }
+    .back-link:hover, .back-link:focus { text-decoration: underline; color: #756833; }
+
+    /* Validation feedback aligned with system */
+    .form-control.is-valid, .form-select.is-valid {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.15);
+    }
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.1);
+    }
+
+    /* Error summary styles */
+    .error-summary {
+        background: #fff5f5;
+        border-left: 4px solid #dc3545;
+        border-radius: 6px;
+        padding: 1rem;
+        color: #842029;
+        margin-bottom: 1rem;
+    }
+    .error-summary h6 { margin: 0 0 .5rem 0; font-weight: 700; }
+    .error-summary ul { margin: 0; padding-left: 1.25rem; }
+
+    /* Counters and responsive buttons */
+    .char-counter.counter-warning { color: #dc3545; font-weight: 600; }
+    .action-buttons .btn { min-width: 140px; }
+    @media (max-width: 576px) {
+        .action-buttons { flex-direction: column; }
+        .action-buttons .btn { width: 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 create-announcement">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h2 class="page-title mb-1">New Announcement</h2>
+                <p class="page-subtitle">Share important updates with residents. Keep the title short and content clear.</p>
+                <a href="{% url 'communications:announcements' %}" class="back-link d-inline-block mt-1">Back to Announcements</a>
+            </div>
+            <div class="page-intro" role="note" aria-label="Page guidance">
+                Keep announcements brief and actionable. Avoid sensitive personal data. You can set an optional expiry to auto-archive.
+            </div>
+            
+            <!-- Form Section -->
+            <div class="form-section">
+                <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="error-summary" role="alert" aria-live="assertive" tabindex="-1" id="error-summary">
+                        <h6>There were problems with your submission</h6>
+                        <ul>
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}</strong>: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <h6>Announcement Details</h6>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                {{ form.title|add_placeholder:"Title*"|as_crispy_field }}
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <small class="text-muted">Up to 200 characters.</small>
+                                    <small class="text-muted"><span id="titleCount" aria-live="polite">0</span>/200</small>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                {{ form.content|add_placeholder:"Content*"|as_crispy_field }}
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <small class="text-muted">Be concise, actionable, and respectful.</small>
+                                    <small class="text-muted"><span id="contentCount" aria-live="polite">0</span> chars</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.priority|as_crispy_field }}
+                                <small class="text-muted">Choose urgency level.</small>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.expires_at|add_placeholder:"Expires at (optional)"|as_crispy_field }}
+                                <small class="text-muted">Optional schedule to auto-expire.</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top action-buttons">
+                        <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true" id="submitSpinner"></span>
+                            Publish
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add date/time picker to the expires_at field
+    const expiresAtField = document.getElementById('id_expires_at');
+    if (expiresAtField) {
+        // Set minimum date to current date/time
+        const now = new Date();
+        const timezoneOffset = now.getTimezoneOffset() * 60000; // Convert minutes to milliseconds
+        const localISOTime = (new Date(now - timezoneOffset)).toISOString().slice(0, 16);
+        expiresAtField.min = localISOTime;
+        
+        // Set default to 24 hours from now if empty
+        if (!expiresAtField.value) {
+            const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            expiresAtField.value = tomorrow.toISOString().slice(0, 16);
+        }
+    }
+    
+    // HCI-aligned validation and submission UX
+    const form = document.querySelector('.needs-validation');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitSpinner = document.getElementById('submitSpinner');
+    const titleInput = document.getElementById('id_title');
+    const contentInput = document.getElementById('id_content') || document.querySelector('textarea[name="content"]');
+    const titleCount = document.getElementById('titleCount');
+    const contentCount = document.getElementById('contentCount');
+    if (form) {
+        // Enforce title maxlength based on model (200)
+        if (titleInput && !titleInput.getAttribute('maxlength')) {
+            titleInput.setAttribute('maxlength', '200');
+        }
+
+        // Live counters
+        const updateTitleCounter = () => {
+            if (!titleInput || !titleCount) return;
+            const max = parseInt(titleInput.getAttribute('maxlength') || '200');
+            const len = titleInput.value.length;
+            titleCount.textContent = len;
+            titleCount.classList.toggle('char-counter', true);
+            titleCount.classList.toggle('counter-warning', max - len <= 10);
+        };
+        const updateContentCounter = () => {
+            if (!contentInput || !contentCount) return;
+            const len = contentInput.value.length;
+            contentCount.textContent = len;
+        };
+
+        // Auto-resize textarea
+        const autosize = (el) => {
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight + 2) + 'px';
+        };
+
+        if (contentInput) {
+            autosize(contentInput);
+            ['input','change'].forEach(evt => contentInput.addEventListener(evt, () => {
+                autosize(contentInput);
+                updateContentCounter();
+            }));
+            updateContentCounter();
+        }
+        if (titleInput) {
+            ['input','change'].forEach(evt => titleInput.addEventListener(evt, updateTitleCounter));
+            updateTitleCounter();
+        }
+
+        // Real-time validation styling
+        form.querySelectorAll('.form-control, .form-select, textarea, input, select').forEach(ctrl => {
+            ctrl.addEventListener('blur', () => {
+                if (ctrl.checkValidity()) {
+                    ctrl.classList.remove('is-invalid');
+                    ctrl.classList.add('is-valid');
+                } else {
+                    ctrl.classList.add('is-invalid');
+                    ctrl.classList.remove('is-valid');
+                }
+            });
+        });
+
+        // Submit handling
+        form.addEventListener('submit', (event) => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                // Focus first invalid control and scroll error summary if present
+                const firstInvalid = form.querySelector('.form-control:invalid, .form-select:invalid, textarea:invalid, input:invalid');
+                if (firstInvalid) {
+                    firstInvalid.classList.add('is-invalid');
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus({ preventScroll: true });
+                }
+                const errorSummary = document.getElementById('error-summary');
+                if (errorSummary) {
+                    errorSummary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    errorSummary.focus({ preventScroll: true });
+                }
+            } else {
+                // Valid: show loading state
+                if (submitBtn && submitSpinner) {
+                    submitBtn.setAttribute('disabled', 'disabled');
+                    submitSpinner.classList.remove('d-none');
+                }
+            }
+            form.classList.add('was-validated');
+        });
+    }
+});
+</script>
+{% endblock %}
