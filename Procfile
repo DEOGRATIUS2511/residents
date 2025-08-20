@@ -1,0 +1,1 @@
+web: gunicorn ward_system.wsgi

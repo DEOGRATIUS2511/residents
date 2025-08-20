@@ -31,9 +31,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-m$#l2r9sti6z$=i9+_-0q6(+c9
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "127.0.0.1",    # for local computer
-    "localhost",    # for local computer
-    "172.16.0.111" # replace with your computer's local IP
+    "*",
 ]
 
 
