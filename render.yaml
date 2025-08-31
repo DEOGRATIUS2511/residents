@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: ward-system
+    env: python
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    postDeployCommand: python manage.py migrate
+    startCommand: gunicorn ward_system.wsgi --log-file -
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ""
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ward-postgres
+          property: connectionString
+
+databases:
+  - name: ward-postgres
+    plan: free
